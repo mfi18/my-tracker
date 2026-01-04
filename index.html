@@ -139,7 +139,8 @@
     <div id="view-outgoing" class="view">
         <button class="pill-btn btn-back" onclick="showView('dashboard')">← BACK</button>
         <button class="pill-btn" onclick="showView('food')">Food Menu</button>
-        <button class="pill-btn" onclick="prepEntry('Expense', 'Lent Money', 'To whom?')">Lent Money</button>
+        <button class="pill-btn" onclick="prepEntry('Expense', 'Cab', 'Where to? (e.g. F-11, Centaurus)')">Cab</button>
+	<button class="pill-btn" onclick="prepEntry('Expense', 'Lent Money', 'To whom?')">Lent Money</button>
         <button class="pill-btn" onclick="prepEntry('Expense', 'Rent', 'Month/Hostel Name?')">Rent</button>
         <button class="pill-btn" onclick="prepEntry('Expense', 'Extras', 'What bought?')">Extras</button>
     </div>
@@ -217,20 +218,25 @@
         document.getElementById('stat-exp').innerText = "Total Expense: PKR " + totalEx.toLocaleString();
 
         // Update History List
-        const histList = document.getElementById('history-list');
-        histList.innerHTML = '';
-        [...transactions].reverse().forEach(t => {
-            if (t.monthYear === curMonthYear) {
-                histList.innerHTML += `
-                    <div class="history-item">
-                        <span style="color: var(--text-dim)">${t.date}</span>
-                        <span>${t.subCat}</span>
-                        <span style="color: ${t.type === 'Income' ? 'var(--accent-green)' : 'var(--accent-red)'}">
-                            ${t.type === 'Income' ? '+' : '-'}${t.amount}
-                        </span>
-                    </div>`;
-            }
-        });
+const histList = document.getElementById('history-list');
+histList.innerHTML = '';
+[...transactions].reverse().forEach(t => {
+    if (t.monthYear === curMonthYear) {
+        histList.innerHTML += `
+            <div class="history-item" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <span style="color: var(--text-dim); font-size: 12px;">${t.date}</span>
+                    <span style="color: ${t.type === 'Income' ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: bold;">
+                        ${t.type === 'Income' ? '+' : '-'}${t.amount}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <span style="font-weight: 500;">${t.subCat}</span>
+                    <span style="color: var(--text-dim); font-size: 13px; font-style: italic;">${t.detail || ''}</span>
+                </div>
+            </div>`;
+    }
+});
         
         localStorage.setItem('budget_logs', JSON.stringify(transactions));
     }
