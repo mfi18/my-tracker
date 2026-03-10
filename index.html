@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Expense Tracker Pro | iOS 26.3</title>
     
-    <!-- PDF Engines -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -14,19 +13,21 @@
             --ios-blue: #007AFF;
             --ios-green: #30D158;
             --ios-red: #FF453A;
-            /* Ultra Glass Recipe */
             --glass-bg: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.2);
             --glass-blur: blur(40px) saturate(210%);
             --text-main: #ffffff;
             --text-dim: rgba(255, 255, 255, 0.5);
+            /* iOS Spring Timing */
+            --ios-spring: cubic-bezier(0.32, 2.1, 0.35, 0.85);
         }
 
         * { 
             box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-            letter-spacing: -0.015em;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            letter-spacing: -0.015em; 
+            user-select: none; /* Prevents text selection during long press */
         }
         
         body {
@@ -44,233 +45,190 @@
             overflow: hidden;
         }
 
-        #app-container {
-            width: 100%;
-            max-width: 440px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .attribution {
-            text-align: center;
-            font-size: 10px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
+        #app-container { width: 100%; max-width: 440px; padding: 20px; display: flex; flex-direction: column; position: relative; }
 
         /* --- THE GLASS SYSTEM --- */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border: 0.5px solid var(--glass-border);
-            border-radius: 32px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        .glass-card { 
+            background: var(--glass-bg); 
+            backdrop-filter: var(--glass-blur); 
+            -webkit-backdrop-filter: var(--glass-blur); 
+            border: 0.5px solid var(--glass-border); 
+            border-radius: 32px; 
+            padding: 25px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
         }
 
-        .pill-btn {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border: 0.5px solid var(--glass-border);
-            border-radius: 22px;
-            padding: 18px;
-            color: white;
-            font-weight: 600;
-            font-size: 17px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.15, 0, 0.15, 1);
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
+        /* --- HAPTIC BUTTON ANIMATION --- */
+        .pill-btn { 
+            background: var(--glass-bg); 
+            backdrop-filter: var(--glass-blur); 
+            -webkit-backdrop-filter: var(--glass-blur); 
+            border: 0.5px solid var(--glass-border); 
+            border-radius: 22px; 
+            padding: 18px; 
+            color: white; 
+            font-weight: 600; 
+            font-size: 17px; 
+            cursor: pointer; 
+            transition: transform 0.3s var(--ios-spring), box-shadow 0.3s ease, background 0.3s ease;
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 12px; 
             margin-bottom: 14px;
+            position: relative;
+            outline: none;
         }
 
-        .pill-btn:active { transform: scale(0.94); background: rgba(255,255,255,0.18); }
+        /* Immediate response on touch */
+        .pill-btn:active {
+            transform: scale(0.92);
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* The "Haptic Pop" effect triggered by JS */
+        .pill-btn.haptic-pop {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 10px 40px rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.2);
+            z-index: 10;
+        }
 
         .btn-add { background: rgba(48, 209, 88, 0.2); border-color: rgba(48, 209, 88, 0.4); color: var(--ios-green); }
         .btn-remove { background: rgba(255, 69, 58, 0.2); border-color: rgba(255, 69, 58, 0.4); color: var(--ios-red); }
-        .btn-blue { background: var(--ios-blue); border: none; font-weight: 700; box-shadow: 0 10px 25px rgba(0, 122, 255, 0.4); }
-
+        .btn-blue { background: var(--ios-blue); border: none; font-weight: 700; }
         .btn-back { width: auto; padding: 10px 20px; border-radius: 14px; font-size: 13px; align-self: flex-start; margin-bottom: 20px; background: rgba(255,255,255,0.1); }
 
-        /* --- TYPOGRAPHY --- */
         .wallet-amt { font-size: 48px; font-weight: 800; letter-spacing: -2px; margin: 8px 0; }
         .month-label { color: var(--text-dim); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
 
-        input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 18px;
-            color: white;
-            font-size: 20px;
-            outline: none;
-            margin-top: 10px;
-            transition: 0.3s;
-            text-align: center;
-        }
-        input:focus { border-color: var(--ios-blue); background: rgba(255, 255, 255, 0.12); }
+        input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px; color: white; font-size: 20px; outline: none; margin-top: 10px; text-align: center; }
 
-        /* --- VIEW TRANSITIONS --- */
-        .view { display: none; flex-direction: column; height: 100%; animation: iosOpen 0.5s cubic-bezier(0.15, 0, 0.15, 1); }
+        .view { display: none; flex-direction: column; height: 100%; animation: iosOpen 0.5s var(--ios-spring); }
         .view.active { display: flex; }
 
-        @keyframes iosOpen {
-            from { opacity: 0; transform: scale(0.95) translateY(20px); filter: blur(15px); }
-            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-        }
+        @keyframes iosOpen { from { opacity: 0; transform: scale(0.9) translateY(30px); filter: blur(15px); } to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
 
         #history-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
-        
-        .history-item {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border: 0.5px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .history-item { background: var(--glass-bg); border: 0.5px solid var(--glass-border); border-radius: 24px; padding: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
         .row { display: flex; gap: 15px; }
         .half { flex: 1; }
-
-        .pdf-card {
-            background: rgba(0, 122, 255, 0.15);
-            border: 1px dashed var(--ios-blue);
-            border-radius: 20px;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
     </style>
 </head>
 <body>
 
 <div id="app-container">
-    <div class="attribution">Made by : Muhammad Faizan | SEECS NUST</div>
-
-    <!-- MAIN LOGO -->
-    <div style="text-align: center; margin-bottom: 5px;">
-        <img src="favicon-96x96.png" alt="MFI Logo" style="width: 65px; height: auto; filter: drop-shadow(0 0 15px rgba(0, 122, 255, 0.4));">
+    <div style="text-align: center; margin-top: 10px;">
+        <img src="favicon-96x96.png" style="width: 60px; filter: drop-shadow(0 0 15px rgba(0, 122, 255, 0.4));">
     </div>
 
-    <!-- GLASS HEADER (Current Month Balance) -->
+    <!-- HEADER -->
     <div id="app-header">
-        <div class="glass-card" style="text-align: center;">
+        <div class="glass-card" style="text-align: center; margin-top: 15px;">
             <div id="display-month" class="month-label">---</div>
             <div id="display-wallet" class="wallet-amt">PKR 0</div>
             <div style="display: flex; justify-content: space-around; margin-top: 20px; border-top: 0.5px solid var(--glass-border); padding-top: 20px;">
                 <div>
-                    <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 5px;">MONTH INCOME</div>
-                    <div id="stat-inc" style="color: var(--ios-green); font-weight: 800; font-size: 16px;">+0</div>
+                    <div style="font-size: 10px; color: var(--text-dim);">INCOME</div>
+                    <div id="stat-inc" style="color: var(--ios-green); font-weight: 800;">+0</div>
                 </div>
                 <div style="width: 0.5px; background: var(--glass-border);"></div>
                 <div>
-                    <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 5px;">MONTH EXPENSE</div>
-                    <div id="stat-exp" style="color: var(--ios-red); font-weight: 800; font-size: 16px;">-0</div>
+                    <div style="font-size: 10px; color: var(--text-dim);">EXPENSE</div>
+                    <div id="stat-exp" style="color: var(--ios-red); font-weight: 800;">-0</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD VIEW -->
+    <!-- DASHBOARD -->
     <div id="view-dashboard" class="view active">
         <div class="row">
-            <div class="half">
-                <button class="pill-btn btn-add" onclick="showView('incoming')">
-                    <span style="font-size: 22px;">＋</span> ADD
-                </button>
-            </div>
-            <div class="half">
-                <button class="pill-btn btn-remove" onclick="showView('outgoing')">
-                    <span style="font-size: 22px;">－</span> REMOVE
-                </button>
-            </div>
+            <div class="half"><button class="pill-btn btn-add haptic" onclick="showView('incoming')">＋ ADD</button></div>
+            <div class="half"><button class="pill-btn btn-remove haptic" onclick="showView('outgoing')">－ REMOVE</button></div>
         </div>
-        <div style="margin-top: 15px;">
-            <button class="pill-btn" onclick="showView('history')">📜 Transaction History</button>
-        </div>
+        <button class="pill-btn haptic" onclick="showView('history')">📜 History & Records</button>
     </div>
 
-    <!-- ADD MONEY (INCOMING) -->
+    <!-- INCOME MENU -->
     <div id="view-incoming" class="view">
         <button class="pill-btn btn-back" onclick="showView('dashboard')">← Dashboard</button>
-        <h3 style="margin-left: 15px; margin-bottom: 15px;">Select Income Source</h3>
-        <button class="pill-btn" onclick="prepEntry('Income', 'Pocketmoney', 'From who?')">💰 Pocketmoney</button>
-        <button class="pill-btn" onclick="prepEntry('Income', 'Debt Back', 'Who paid back?')">🔄 Debt Back</button>
-        <button class="pill-btn" onclick="prepEntry('Income', 'Borrowed', 'Lender Name?')">🤝 Borrowed</button>
-        <button class="pill-btn" onclick="prepEntry('Income', 'Other', 'Description...')">✨ Other Income</button>
+        <button class="pill-btn haptic" onclick="prepEntry('Income', 'Pocketmoney', 'From who?')">💰 Pocketmoney</button>
+        <button class="pill-btn haptic" onclick="prepEntry('Income', 'Debt Back', 'Who paid?')">🔄 Debt Back</button>
+        <button class="pill-btn haptic" onclick="prepEntry('Income', 'Other', 'Source?')">✨ Other</button>
     </div>
 
-    <!-- REMOVE MONEY (OUTGOING) -->
+    <!-- EXPENSE MENU -->
     <div id="view-outgoing" class="view">
         <button class="pill-btn btn-back" onclick="showView('dashboard')">← Dashboard</button>
-        <h3 style="margin-left: 15px; margin-bottom: 15px;">Select Expense Type</h3>
-        <button class="pill-btn" onclick="showView('food')">🍔 Food & Drinks</button>
-        <button class="pill-btn" onclick="prepEntry('Expense', 'Cab', 'Destination?')">🚕 Cab / Transport</button>
-        <button class="pill-btn" onclick="prepEntry('Expense', 'Rent', 'Hostel/Month?')">🏠 Rent / Bills</button>
-        <button class="pill-btn" onclick="prepEntry('Expense', 'Lent', 'To whom?')">💸 Lent Money</button>
-        <button class="pill-btn" onclick="prepEntry('Expense', 'Other', 'Bought what?')">🛒 Other Expense</button>
+        <button class="pill-btn haptic" onclick="showView('food')">🍔 Food & Drinks</button>
+        <button class="pill-btn haptic" onclick="prepEntry('Expense', 'Cab', 'To where?')">🚕 Cab</button>
+        <button class="pill-btn haptic" onclick="prepEntry('Expense', 'Rent', 'Which month?')">🏠 Rent</button>
+        <button class="pill-btn haptic" onclick="prepEntry('Expense', 'Other', 'Note?')">🛒 Other</button>
     </div>
 
-    <!-- FOOD SUB-MENU -->
+    <!-- FOOD MENU -->
     <div id="view-food" class="view">
         <button class="pill-btn btn-back" onclick="showView('outgoing')">← Back</button>
-        <div id="food-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <!-- Generated -->
-        </div>
+        <div id="food-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
     </div>
 
-    <!-- ENTRY FORM (Where you add amount) -->
+    <!-- ENTRY FORM -->
     <div id="view-entry" class="view">
         <button class="pill-btn btn-back" onclick="showView('dashboard')">✕ Cancel</button>
-        <div class="glass-card" style="margin-top: 0;">
+        <div class="glass-card">
             <h2 id="entry-title" style="margin: 0; text-align: center;">Entry</h2>
-            <div style="margin-top: 30px;">
-                <label style="font-size: 11px; color: var(--text-dim); font-weight: 700; margin-left: 10px;">ENTER AMOUNT (PKR)</label>
-                <input type="number" id="input-amount" placeholder="0.00" inputmode="decimal">
-            </div>
-            <div style="margin-top: 20px;">
-                <label id="label-desc" style="font-size: 11px; color: var(--text-dim); font-weight: 700; margin-left: 10px;">REMARKS</label>
-                <input type="text" id="input-desc" placeholder="Note...">
-            </div>
-            <button class="pill-btn btn-blue" style="margin-top: 35px;" onclick="saveEntry()">Confirm & Save</button>
+            <input type="number" id="input-amount" placeholder="0.00" inputmode="decimal">
+            <input type="text" id="input-desc" placeholder="Remarks...">
+            <button class="pill-btn btn-blue haptic" style="margin-top: 25px;" onclick="saveEntry()">Save</button>
         </div>
     </div>
 
-    <!-- HISTORY VIEW -->
+    <!-- HISTORY -->
     <div id="view-history" class="view">
         <button class="pill-btn btn-back" onclick="showView('dashboard')">← Back</button>
-        
-        <div class="pdf-card">
-            <div style="margin-bottom: 10px; font-weight: 600;">Monthly Records Archive</div>
-            <button class="pill-btn" style="margin: 0; padding: 10px; font-size: 13px; border-radius: 12px; background: var(--ios-blue);" onclick="exportPreviousMonth()">📥 Download Last Month's PDF</button>
+        <div class="glass-card" style="padding: 15px; margin-bottom: 15px; display: flex; gap: 10px;">
+            <button class="pill-btn haptic" style="font-size: 11px; padding: 10px; margin:0;" onclick="exportPreviousMonth()">PDF Report</button>
+            <button class="pill-btn haptic" style="font-size: 11px; padding: 10px; margin:0;" onclick="backupJSON()">💾 Backup</button>
         </div>
-
         <div id="history-list"></div>
     </div>
 
 </div>
 
 <script>
-    let transactions = JSON.parse(localStorage.getItem('ios_pro_v2_logs')) || [];
+    let transactions = JSON.parse(localStorage.getItem('ios_haptic_logs')) || [];
     let activeCat = "", activeSub = "", activeType = "";
+
+    // --- HAPTIC TOUCH SYSTEM ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const hapticBtns = document.querySelectorAll('.haptic');
+        
+        hapticBtns.forEach(btn => {
+            let timer;
+            
+            btn.addEventListener('touchstart', (e) => {
+                // Initial press shrink is handled by CSS :active
+                timer = setTimeout(() => {
+                    btn.classList.add('haptic-pop');
+                    if (navigator.vibrate) navigator.vibrate(15); // Tiny vibration
+                }, 400); // Trigger after 400ms hold
+            });
+
+            btn.addEventListener('touchend', () => {
+                clearTimeout(timer);
+                btn.classList.remove('haptic-pop');
+            });
+
+            btn.addEventListener('touchcancel', () => {
+                clearTimeout(timer);
+                btn.classList.remove('haptic-pop');
+            });
+        });
+    });
 
     function init() {
         const now = new Date();
@@ -278,73 +236,45 @@
         document.getElementById('display-month').innerText = monthNames[now.getMonth()] + " " + now.getFullYear();
         
         const foods = ["Biryani", "Burger", "Shake", "Chaat", "Pizza", "Tea", "Drink", "Others"];
-        const grid = document.getElementById('food-grid');
-        grid.innerHTML = foods.map(f => `<button class="pill-btn" onclick="prepEntry('Expense', '${f}', 'Add details?')">${f}</button>`).join('');
-
+        document.getElementById('food-grid').innerHTML = foods.map(f => `<button class="pill-btn haptic" onclick="prepEntry('Expense', '${f}', 'Note?')">${f}</button>`).join('');
         refreshData();
     }
 
     function refreshData() {
         const now = new Date();
         const currentKey = `${now.getMonth() + 1}-${now.getFullYear()}`;
-        
         let mIn = 0, mEx = 0;
-
-        // MONTHLY RESET LOGIC: 
-        // We iterate through all history but only sum values for the current month key.
         transactions.forEach(t => {
             if (t.monthYear === currentKey) {
-                const val = parseFloat(t.amount);
-                if (t.type === 'Income') mIn += val;
-                else mEx += val;
+                if (t.type === 'Income') mIn += parseFloat(t.amount);
+                else mEx += parseFloat(t.amount);
             }
         });
-
-        const currentBalance = mIn - mEx;
-        const walletEl = document.getElementById('display-wallet');
-        walletEl.innerText = "PKR " + currentBalance.toLocaleString();
-        walletEl.style.color = currentBalance >= 0 ? "var(--ios-green)" : "var(--ios-red)";
-        
+        const bal = mIn - mEx;
+        document.getElementById('display-wallet').innerText = "PKR " + bal.toLocaleString();
+        document.getElementById('display-wallet').style.color = bal >= 0 ? "var(--ios-green)" : "var(--ios-red)";
         document.getElementById('stat-inc').innerText = "+" + mIn.toLocaleString();
         document.getElementById('stat-exp').innerText = "-" + mEx.toLocaleString();
 
-        renderHistory();
-        localStorage.setItem('ios_pro_v2_logs', JSON.stringify(transactions));
-    }
-
-    function renderHistory() {
-        const container = document.getElementById('history-list');
         const sorted = [...transactions].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        container.innerHTML = sorted.length ? '' : '<div style="text-align:center; color:var(--text-dim); margin-top:50px;">No history found</div>';
-        
-        sorted.forEach(t => {
-            container.innerHTML += `
-                <div class="history-item">
-                    <div>
-                        <div style="font-weight: 700; font-size: 17px;">${t.subCat}</div>
-                        <div style="font-size: 11px; color: var(--text-dim); margin-top: 3px;">${t.date}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 800; color: ${t.type === 'Income' ? 'var(--ios-green)' : 'var(--ios-red)'}">
-                            ${t.type === 'Income' ? '+' : '-'}${parseFloat(t.amount).toLocaleString()}
-                        </div>
-                        <div style="font-size: 11px; color: var(--text-dim); font-style: italic;">${t.detail || ''}</div>
-                    </div>
-                </div>`;
-        });
+        document.getElementById('history-list').innerHTML = sorted.map(t => `
+            <div class="history-item">
+                <div><div style="font-weight:700;">${t.subCat}</div><div style="font-size:10px; color:var(--text-dim);">${t.date}</div></div>
+                <div style="text-align:right;"><div style="font-weight:800; color:${t.type==='Income'?'var(--ios-green)':'var(--ios-red)'}">${t.type==='Income'?'+':'-'}${parseFloat(t.amount).toLocaleString()}</div><div style="font-size:10px; color:var(--text-dim);">${t.detail||''}</div></div>
+            </div>
+        `).join('') || '<div style="text-align:center; color:var(--text-dim); margin-top:30px;">Empty History</div>';
+
+        localStorage.setItem('ios_haptic_logs', JSON.stringify(transactions));
     }
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + id).classList.add('active');
-        if(id === 'dashboard') refreshData();
     }
 
-    function prepEntry(cat, sub, promptText) {
+    function prepEntry(cat, sub) {
         activeCat = cat; activeSub = sub; activeType = cat;
         document.getElementById('entry-title').innerText = sub;
-        document.getElementById('label-desc').innerText = promptText.toUpperCase();
         document.getElementById('input-amount').value = "";
         document.getElementById('input-desc').value = "";
         showView('entry');
@@ -352,58 +282,41 @@
 
     function saveEntry() {
         const amt = document.getElementById('input-amount').value;
-        const desc = document.getElementById('input-desc').value;
-        if (!amt || amt <= 0) return alert("Enter valid amount");
-
+        if (!amt || amt <= 0) return;
         const now = new Date();
-        const entry = {
+        transactions.push({
             timestamp: now.toISOString(),
             date: `${now.getDate()}/${now.getMonth() + 1} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`,
             subCat: activeSub,
-            detail: desc,
+            detail: document.getElementById('input-desc').value,
             amount: amt,
             type: activeType,
             monthYear: `${now.getMonth() + 1}-${now.getFullYear()}`
-        };
-
-        transactions.push(entry);
+        });
         refreshData();
         showView('dashboard');
     }
 
-    // PDF EXPORT FOR PREVIOUS MONTH
     function exportPreviousMonth() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         const now = new Date();
-        let targetMonth = now.getMonth(); 
-        let targetYear = now.getFullYear();
-        
-        if (targetMonth === 0) { targetMonth = 12; targetYear--; }
-        
-        const key = `${targetMonth}-${targetYear}`;
+        let m = now.getMonth(); let y = now.getFullYear();
+        if (m === 0) { m = 12; y--; }
+        const key = `${m}-${y}`;
         const data = transactions.filter(t => t.monthYear === key);
+        if (!data.length) return alert("No data found");
+        doc.text(`Report: ${key}`, 14, 20);
+        doc.autoTable({ head: [['Date', 'Type', 'Amount']], body: data.map(t => [t.date, t.subCat, t.amount]) });
+        doc.save(`Expenses_${key}.pdf`);
+    }
 
-        if (data.length === 0) return alert("No transactions found for " + key);
-
-        doc.setFontSize(22);
-        doc.setTextColor(0, 122, 255);
-        doc.text("Monthly Expense Report", 14, 20);
-        doc.setFontSize(12);
-        doc.setTextColor(100);
-        doc.text(`Month Code: ${key} | Generated: ${new Date().toLocaleDateString()}`, 14, 28);
-
-        const rows = data.map(t => [t.date, t.subCat, t.type, t.detail, t.amount]);
-        doc.autoTable({
-            head: [['Date', 'Category', 'Type', 'Note', 'Amount (PKR)']],
-            body: rows,
-            startY: 35,
-            theme: 'grid',
-            headStyles: { fillColor: [0, 122, 255] }
-        });
-
-        doc.save(`Expense_Report_${key}.pdf`);
+    function backupJSON() {
+        const blob = new Blob([JSON.stringify(transactions)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Backup_${new Date().toLocaleDateString()}.json`;
+        a.click();
     }
 
     init();
